@@ -180,7 +180,7 @@ if __name__ == '__main__':
                 'strategyName': symbolset.ix[i, 'strategyName'],
                 'exchange_id': exchangeid,
                 'sec_id': secid,
-                'K_MIN': symbolset.ix[i, 'K_MIN'],
+                'K_MIN': int(symbolset.ix[i, 'K_MIN']),
                 'startdate': symbolset.ix[i, 'startdate'],
                 'enddate': symbolset.ix[i, 'enddate'],
                 'result_para_dic': Parameter.result_para_dic
@@ -219,7 +219,7 @@ if __name__ == '__main__':
         r['strategyName'] = strategyParameter['strategyName']
         r['exchange_id'] = strategyParameter['exchange_id']
         r['sec_id'] = strategyParameter['sec_id']
-        r['K_MIN'] = int(strategyParameter['K_MIN'])
+        r['K_MIN'] = strategyParameter['K_MIN']
         allsymbolresult = pd.concat([allsymbolresult, r])
     allsymbolresult.reset_index(drop=False, inplace=True)
     os.chdir(resultpath)
