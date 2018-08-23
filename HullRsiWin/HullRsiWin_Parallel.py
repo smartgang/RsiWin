@@ -66,6 +66,7 @@ def getResult(strategyName, symbolinfo, K_MIN, setname, rawdataDic, para, result
                                                                                                       initialCash,
                                                                                                       positionRatio)
     bt_folder = "%s %d backtesting\\" % (symbolinfo.domain_symbol, K_MIN)
+
     result.to_csv(bt_folder + strategyName + ' ' + symbolinfo.domain_symbol + str(K_MIN) + ' ' + setname + ' result.csv', index=False)
     dR = RS.dailyReturn(symbolinfo, result, dailyK, initialCash)  # 计算生成每日结果
     dR.calDailyResult()
@@ -109,7 +110,7 @@ def getParallelResult(strategyParameter, resultpath, parasetlist, paranum, index
     pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
     l = []
     resultlist = pd.DataFrame(columns=['Setname'] + indexcols)
-    for i in range(0, 10):
+    for i in range(0, paranum):
         setname = parasetlist.ix[i, 'Setname']
         n1 = parasetlist.ix[i, 'N1']
         m1 = parasetlist.ix[i, 'M1']
@@ -140,7 +141,7 @@ def getParallelResult(strategyParameter, resultpath, parasetlist, paranum, index
         resultlist.loc[i] = res.get()
         i += 1
     # print resultlist
-    finalresults = ("%s %s %d finalresults_test.csv" % (strategyName, domain_symbol, K_MIN))
+    finalresults = ("%s %s %d finalresults.csv" % (strategyName, domain_symbol, K_MIN))
     resultlist.to_csv(finalresults)
     return resultlist
 
@@ -218,7 +219,7 @@ if __name__ == '__main__':
         r['strategyName'] = strategyParameter['strategyName']
         r['exchange_id'] = strategyParameter['exchange_id']
         r['sec_id'] = strategyParameter['sec_id']
-        r['K_MIN'] = strategyParameter['K_MIN']
+        r['K_MIN'] = int(strategyParameter['K_MIN'])
         allsymbolresult = pd.concat([allsymbolresult, r])
     allsymbolresult.reset_index(drop=False, inplace=True)
     os.chdir(resultpath)

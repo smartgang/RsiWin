@@ -9,7 +9,7 @@ sec_id = 'RB'
 K_MIN = 3600
 startdate = '2010-01-01'
 enddate = '2018-07-01'
-parasetname = 'ParameterSet_HullRsi2.csv'
+parasetname = 'ParameterSet_HullRsi.csv'
 result_para_dic = {  # 结果计算相关参数
     'positionRatio': 0.5,  # 持仓比例
     'initialCash': 2000000,  # 起始资金
