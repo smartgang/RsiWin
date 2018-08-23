@@ -146,7 +146,7 @@ stoploss_set_filename = strategyName + '_stoploss_set.xlsx'
 forward_set_filename = strategyName + '_forward_set.xlsx'
 
 # ====================系统参数==================================
-folderLevel = 2
+folderLevel = 3
 resultFolderName = '\\Results\\'
 
 
@@ -164,6 +164,7 @@ def para_str_to_float(para_str):
 
 def generat_para_file():
     import pandas as pd
+    """
     para_dic = strategy_para_dic
     keys = para_dic.keys()
     parasetlist = pd.DataFrame(columns=['Setname'] + keys)
@@ -173,10 +174,31 @@ def generat_para_file():
     parasetlist['No.'] = range(total_num)
     for i in range(total_num):
         parasetlist.ix[i, 'Setname'] = "Set%d" % i
+    multipliter = total_num
+    v_num = 1
     for k, v in para_dic.items():
-        v_num = len(v)
-        for i in range(total_num):
-            v_value = v[i % len(v)]
-            parasetlist.ix[i, k] = v_value
-            parasetlist.ix[i, 'Setname'] = parasetlist.ix[i, 'Setname'] + " %s_%d" % (k, v_value)
+        v_num = v_num * len(v)
+        for i in range(v_num):
+            v_value = v[i]
+            multipliter = multipliter/v_num
+            parasetlist.loc[i*multipliter: (i+1)*multipliter, k] = v_value
+            parasetlist.loc[i*multipliter:(i+1)*multipliter, 'Setname'] = parasetlist.loc[i*multipliter:(i+1)*multipliter, 'Setname'] + " %s_%d" % (k, v_value)
     return parasetlist
+    """
+    setlist = []
+    i = 0
+    for n1 in range(15, 36, 5):
+        for m1 in range(6, 17, 4):
+            #   for m2 in range(3, 15, 3):
+            for m2 in [3, 6, 9]:
+                # for n in range(3, 16, 3):
+                for n in [6, 10, 14, 18]:
+                    # for ma_n in range(20, 51, 10):
+                    for ma_n in [20, 30, 40, 50]:
+                        setname = "Set%d N1_%d M1_%d M2_%d N_%d MaN_%d" % (i, n1, m1, m2, n, ma_n)
+                        l = [setname, n1, m1, m2, n, ma_n]
+                        setlist.append(l)
+                        i += 1
+
+    setpd = pd.DataFrame(setlist, columns=['Setname', 'N1', 'M1', 'M2', 'N', 'MaN'])
+    return setpd
