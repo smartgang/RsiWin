@@ -65,10 +65,11 @@ def getResult(strategyName, symbolinfo, K_MIN, setname, rawdataDic, para, result
                                                                                                       symbolinfo,
                                                                                                       initialCash,
                                                                                                       positionRatio)
-    result.to_csv(strategyName + ' ' + symbolinfo.domain_symbol + str(K_MIN) + ' ' + setname + ' result.csv', index=False)
+    bt_folder = "%s %d backtesting\\" % (symbolinfo.domain_symbol, K_MIN)
+    result.to_csv(bt_folder + strategyName + ' ' + symbolinfo.domain_symbol + str(K_MIN) + ' ' + setname + ' result.csv', index=False)
     dR = RS.dailyReturn(symbolinfo, result, dailyK, initialCash)  # 计算生成每日结果
     dR.calDailyResult()
-    dR.dailyClose.to_csv((strategyName + ' ' + symbolinfo.domain_symbol + str(K_MIN) + ' ' + setname + ' dailyresult.csv'))
+    dR.dailyClose.to_csv((bt_folder + strategyName + ' ' + symbolinfo.domain_symbol + str(K_MIN) + ' ' + setname + ' dailyresult.csv'))
     results = RS.getStatisticsResult(result, False, indexcols, dR.dailyClose)
     del result
     print results
@@ -108,7 +109,7 @@ def getParallelResult(strategyParameter, resultpath, parasetlist, paranum, index
     pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
     l = []
     resultlist = pd.DataFrame(columns=['Setname'] + indexcols)
-    for i in range(0, paranum):
+    for i in range(0, 10):
         setname = parasetlist.ix[i, 'Setname']
         n1 = parasetlist.ix[i, 'N1']
         m1 = parasetlist.ix[i, 'M1']
@@ -139,7 +140,7 @@ def getParallelResult(strategyParameter, resultpath, parasetlist, paranum, index
         resultlist.loc[i] = res.get()
         i += 1
     # print resultlist
-    finalresults = ("%s %s %d finalresults.csv" % (strategyName, domain_symbol, K_MIN))
+    finalresults = ("%s %s %d finalresults_test.csv" % (strategyName, domain_symbol, K_MIN))
     resultlist.to_csv(finalresults)
     return resultlist
 
@@ -149,10 +150,6 @@ if __name__ == '__main__':
     # 文件路径
     upperpath = DC.getUpperPath(Parameter.folderLevel)
     resultpath = upperpath + Parameter.resultFolderName
-
-    # 取参数集
-    parasetlist = pd.read_csv(resultpath + Parameter.parasetname)
-    paranum = parasetlist.shape[0]
 
     # indexcols
     indexcols = Parameter.ResultIndexDic
@@ -191,6 +188,32 @@ if __name__ == '__main__':
     allsymbolresult_cols = ['Setname'] + indexcols + ['strategyName', 'exchange_id', 'sec_id', 'K_MIN']
     allsymbolresult = pd.DataFrame(columns=allsymbolresult_cols)
     for strategyParameter in strategyParameterSet:
+        strategy_name = strategyParameter['strategyName']
+        exchange_id = strategyParameter['exchange_id']
+        sec_id = strategyParameter['sec_id']
+        bar_type = strategyParameter['K_MIN']
+        foldername = ' '.join([strategy_name, exchange_id, sec_id, str(bar_type)])
+        try:
+            os.chdir(resultpath)
+            os.mkdir(foldername)
+        except:
+            print ("%s folder already exsist!" % foldername)
+        finally:
+            os.chdir(foldername)
+        try:
+            os.mkdir("%s.%s %d backtesting" % (exchange_id, sec_id, bar_type))
+        except:
+            pass
+
+        try:
+            # 取参数集
+            parasetlist = pd.read_csv("%s %s %d %s" % (exchange_id, sec_id, bar_type, Parameter.parasetname))
+        except:
+            # 如果没有，则直接生成
+            parasetlist = Parameter.generat_para_file()
+            parasetlist.to_csv("%s %s %d %s" % (exchange_id, sec_id, bar_type, Parameter.parasetname))
+        paranum = parasetlist.shape[0]
+
         r = getParallelResult(strategyParameter, resultpath, parasetlist, paranum, indexcols)
         r['strategyName'] = strategyParameter['strategyName']
         r['exchange_id'] = strategyParameter['exchange_id']

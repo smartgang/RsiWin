@@ -9,12 +9,20 @@ sec_id = 'RB'
 K_MIN = 3600
 startdate = '2010-01-01'
 enddate = '2018-07-01'
-parasetname = 'ParameterSet_HullRsi.csv'
+parasetname = 'ParameterSet_HullRsi2.csv'
 result_para_dic = {  # 结果计算相关参数
     'positionRatio': 0.5,  # 持仓比例
     'initialCash': 2000000,  # 起始资金
     'remove_polar_switch': False,
     'remove_polaar_rate': 0.01
+}
+
+strategy_para_dic = {
+    "N1": [15, 20, 25, 30, 35],
+    "M1": [6, 10, 14],
+    "M2": [3, 6, 9],
+    "N": [6, 10, 14, 18],
+    "MaN": [20, 30, 40, 50]
 }
 
 # =============止损控制开关===================
@@ -128,7 +136,7 @@ ResultIndexDic=[
 '''
 # ===============多品种多周期优化参数=============================
 # 多品种多周期优化开关，打开后代码会从下面标识的文件中导入参数
-symbol_KMIN_opt_swtich = False
+symbol_KMIN_opt_swtich = True
 
 # 1.品种和周期组合文件
 symbol_KMIN_set_filename = strategyName + '_symbol_KMIN_set.xlsx'
@@ -140,3 +148,35 @@ forward_set_filename = strategyName + '_forward_set.xlsx'
 # ====================系统参数==================================
 folderLevel = 2
 resultFolderName = '\\Results\\'
+
+
+# ===================== 通用功能函数 =========================================
+def para_str_to_float(para_str):
+    # 功能函数：用于将从多品种多周期文件读取进来的字符串格式的参数列表转换为符点型列表
+    para_float_list = []
+    if type(para_str) != 'str':
+        para_float_list.append(float(para_str))
+    else:
+        for x in para_str.split(','):
+            para_float_list.append(float(x))
+    return para_float_list
+
+
+def generat_para_file():
+    import pandas as pd
+    para_dic = strategy_para_dic
+    keys = para_dic.keys()
+    parasetlist = pd.DataFrame(columns=['Setname'] + keys)
+    total_num = 1
+    for v in para_dic.values():
+        total_num *= len(v)
+    parasetlist['No.'] = range(total_num)
+    for i in range(total_num):
+        parasetlist.ix[i, 'Setname'] = "Set%d" % i
+    for k, v in para_dic.items():
+        v_num = len(v)
+        for i in range(total_num):
+            v_value = v[i % len(v)]
+            parasetlist.ix[i, k] = v_value
+            parasetlist.ix[i, 'Setname'] = parasetlist.ix[i, 'Setname'] + " %s_%d" % (k, v_value)
+    return parasetlist
