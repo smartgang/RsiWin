@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 策略参数设置
-'''
+"""
 # 参数设置
 strategyName = 'HullRsiWin'
 exchange_id = 'SHFE'
@@ -11,8 +11,8 @@ startdate = '2010-01-01'
 enddate = '2018-07-01'
 parasetname = 'ParameterSet_HullRsi.csv'
 result_para_dic = {  # 结果计算相关参数
-    'positionRatio': 1,  # 持仓比例
-    'initialCash': 200000,  # 起始资金
+    'positionRatio': 0.5,  # 持仓比例
+    'initialCash': 2000000,  # 起始资金
     'remove_polar_switch': False,
     'remove_polaar_rate': 0.01
 }
@@ -81,6 +81,7 @@ ResultIndexDic = [
     "LongOprTimes",  # 多操作次数
     "ShortOprTimes",  # 空操作次数
     "EndCash",  # 最终资金
+    "MaxOwnCash",  # 最大期间资金
     "LongOprRate",  # 多操作占比
     "ShortOprRate",  # 空操作占比
     "Annual",  # 年化收益
