@@ -146,7 +146,7 @@ stoploss_set_filename = strategyName + '_stoploss_set.xlsx'
 forward_set_filename = strategyName + '_forward_set.xlsx'
 
 # ====================系统参数==================================
-folderLevel = 3
+folderLevel = 2
 resultFolderName = '\\Results\\'
 
 
