@@ -183,7 +183,12 @@ if __name__ == '__main__':
                 'K_MIN': int(symbolset.ix[i, 'K_MIN']),
                 'startdate': symbolset.ix[i, 'startdate'],
                 'enddate': symbolset.ix[i, 'enddate'],
-                'result_para_dic': Parameter.result_para_dic
+                'result_para_dic': Parameter.result_para_dic,
+                'para_N': symbolset.ix[i, 'N'],
+                'para_N1': symbolset.ix[i, 'N1'],
+                'para_M1': symbolset.ix[i, 'M1'],
+                'para_M2': symbolset.ix[i, 'M2'],
+                'para_MaN': symbolset.ix[i, 'MaN']
             }
             )
     allsymbolresult_cols = ['Setname'] + indexcols + ['strategyName', 'exchange_id', 'sec_id', 'K_MIN']
@@ -211,7 +216,14 @@ if __name__ == '__main__':
             parasetlist = pd.read_csv("%s %s %d %s" % (exchange_id, sec_id, bar_type, Parameter.parasetname))
         except:
             # 如果没有，则直接生成
-            parasetlist = Parameter.generat_para_file()
+            para_list_dic = {
+                'N':strategyParameter['para_N'],
+                'N1':strategyParameter['para_N1'],
+                'M1':strategyParameter['para_M1'],
+                'M2': strategyParameter['para_M2'],
+                'MaN':strategyParameter['para_MaN']
+            }
+            parasetlist = Parameter.generat_para_file(para_list_dic)
             parasetlist.to_csv("%s %s %d %s" % (exchange_id, sec_id, bar_type, Parameter.parasetname))
         paranum = parasetlist.shape[0]
 

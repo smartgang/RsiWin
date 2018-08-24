@@ -11,8 +11,8 @@ startdate = '2010-01-01'
 enddate = '2018-07-01'
 parasetname = 'ParameterSet_HullRsi.csv'
 result_para_dic = {  # 结果计算相关参数
-    'positionRatio': 0.5,  # 持仓比例
-    'initialCash': 2000000,  # 起始资金
+    'positionRatio': 0.2,  # 持仓比例
+    'initialCash': 1000000,  # 起始资金
     'remove_polar_switch': False,
     'remove_polaar_rate': 0.01
 }
@@ -162,7 +162,17 @@ def para_str_to_float(para_str):
     return para_float_list
 
 
-def generat_para_file():
+def para_str_to_int(para_str):
+    # 功能函数：用于将从多品种多周期文件读取进来的字符串格式的参数列表转换为符点型列表
+    para_float_list = []
+    if type(para_str) != 'str':
+        para_float_list.append(int(para_str))
+    else:
+        for x in para_str.split(','):
+            para_float_list.append(int(x))
+    return para_float_list
+
+def generat_para_file(para_list_dic = None):
     import pandas as pd
     """
     para_dic = strategy_para_dic
@@ -185,16 +195,28 @@ def generat_para_file():
             parasetlist.loc[i*multipliter:(i+1)*multipliter, 'Setname'] = parasetlist.loc[i*multipliter:(i+1)*multipliter, 'Setname'] + " %s_%d" % (k, v_value)
     return parasetlist
     """
+    if para_list_dic:
+        n_list = para_str_to_int(para_list_dic['N'])
+        m1_list = para_str_to_int(para_list_dic['M1'])
+        m2_list = para_str_to_int(para_list_dic['M2'])
+        n1_list= para_str_to_int(para_list_dic['N1'])
+        man_list = para_str_to_int(para_list_dic['MaN'])
+    else:
+        n_list = strategy_para_dic['N']
+        m1_list = strategy_para_dic['M1']
+        m2_list = strategy_para_dic['M2']
+        n1_list = strategy_para_dic['N1']
+        man_list = strategy_para_dic['MaN']
     setlist = []
     i = 0
-    for n1 in range(15, 36, 5):
-        for m1 in range(6, 17, 4):
+    for n1 in n1_list:
+        for m1 in m1_list:
             #   for m2 in range(3, 15, 3):
-            for m2 in [3, 6, 9]:
+            for m2 in m2_list:
                 # for n in range(3, 16, 3):
-                for n in [6, 10, 14, 18]:
+                for n in n_list:
                     # for ma_n in range(20, 51, 10):
-                    for ma_n in [20, 30, 40, 50]:
+                    for ma_n in man_list:
                         setname = "Set%d N1_%d M1_%d M2_%d N_%d MaN_%d" % (i, n1, m1, m2, n, ma_n)
                         l = [setname, n1, m1, m2, n, ma_n]
                         setlist.append(l)
