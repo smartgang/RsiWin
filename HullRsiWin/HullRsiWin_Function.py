@@ -91,10 +91,27 @@ def plot_parameter_result_pic():
     upperpath = DC.getUpperPath(Parameter.folderLevel)
     resultpath = upperpath + Parameter.resultFolderName
     os.chdir(resultpath)
-    result_file = pd.read_csv()
-    fig = plt.figure(figsize=(10, 6))
-    test_data = [1, 3, 5, 8]
-    test_data_2 = [2, 10, 9, 8]
+    symbol_sellected = pd.read_excel("multi_symbol_1st_xu.xlsx")
+    for n , rows in symbol_sellected.iterrows():
+        fig = plt.figure(figsize=(6, 12))
+        exchange = rows['exchange']
+        sec = rows['sec']
+        bar_type = rows['bar_type']
+        folder_name = "%s %s %s %d\\" % (Parameter.strategyName, exchange, sec, bar_type)
+        final_result_file = pd.read_csv(folder_name + "%s %s.%s %d finalresults.csv" % (Parameter.strategyName, exchange, sec, bar_type))
+        para_file = pd.read_csv(folder_name + "%s %s %d ParameterSet_HullRsi.csv" % (exchange, sec, bar_type))
+        para_name_list = ['N', 'N1', 'M1', 'M2', 'MaN']
+        for i in range(len(para_name_list)):
+            para_name = para_name_list[i]
+            final_result_file[para_name_list] = para_file[para_name_list]
+            grouped = final_result_file.groupby(para_name)
+            end_cash_grouped = grouped['EndCash'].mean()
+            p = plt.subplot(len(para_name_list), 1, i+1)
+            p.set_title(para_name)
+            p.bar(end_cash_grouped.index.tolist(), end_cash_grouped.values)
+            print end_cash_grouped
+        fig.savefig('%s %s %s %d_para_distribute.png' % (Parameter.strategyName, exchange, sec, bar_type), dip=500)
+    """
     for i in range(1, len(test_data) + 2):
         p = plt.subplot(2, 5, i)
         p.set_title(str(i))
@@ -104,8 +121,7 @@ def plot_parameter_result_pic():
         p = plt.subplot(2, 5, i + 5)
         p.set_title(str(i))
         p.bar([1, 2, 3, 4], test_data_2)
-    plt.show()
-    pass
+    """
 
 
 if __name__ == "__main__":
