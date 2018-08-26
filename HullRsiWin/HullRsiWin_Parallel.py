@@ -215,14 +215,17 @@ if __name__ == '__main__':
             # 取参数集
             parasetlist = pd.read_csv("%s %s %d %s" % (exchange_id, sec_id, bar_type, Parameter.parasetname))
         except:
+            if not Parameter.symbol_KMIN_opt_swtich:
+                para_list_dic = None    # 单品种模式使用默认参数
+            else:
             # 如果没有，则直接生成
-            para_list_dic = {
-                'N':strategyParameter['para_N'],
-                'N1':strategyParameter['para_N1'],
-                'M1':strategyParameter['para_M1'],
-                'M2': strategyParameter['para_M2'],
-                'MaN':strategyParameter['para_MaN']
-            }
+                para_list_dic = {
+                    'N':strategyParameter['para_N'],
+                    'N1':strategyParameter['para_N1'],
+                    'M1':strategyParameter['para_M1'],
+                    'M2': strategyParameter['para_M2'],
+                    'MaN':strategyParameter['para_MaN']
+                }
             parasetlist = Parameter.generat_para_file(para_list_dic)
             parasetlist.to_csv("%s %s %d %s" % (exchange_id, sec_id, bar_type, Parameter.parasetname))
         paranum = parasetlist.shape[0]
