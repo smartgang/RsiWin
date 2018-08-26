@@ -11,10 +11,10 @@ startdate = '2010-01-01'
 enddate = '2018-07-01'
 parasetname = 'ParameterSet_HullRsi.csv'
 result_para_dic = {  # 结果计算相关参数
-    'positionRatio': 0.2,  # 持仓比例
+    'positionRatio': 0.3,  # 持仓比例
     'initialCash': 1000000,  # 起始资金
     'remove_polar_switch': False,
-    'remove_polaar_rate': 0.01
+    'remove_polar_rate': 0.01
 }
 
 strategy_para_dic = {
