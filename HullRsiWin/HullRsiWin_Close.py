@@ -35,7 +35,7 @@ def getDSL(strategyName, symbolInfo, bar_type, dsl_para_dic_list, parasetlist, b
         except:
             # print 'folder already exist'
             pass
-        print ("stoplossTarget:%.3f" % stoplossTarget_dic['para_name'])
+        print ("stoplossTarget:%s" % stoplossTarget_dic['para_name'])
 
         resultdf = pd.DataFrame(columns=allresultdf_cols)
         setnum = 0
