@@ -47,8 +47,8 @@ def getDSL(strategyName, symbolInfo, bar_type, dsl_para_dic_list, parasetlist, b
             for a in range(numlist[n - 1], numlist[n]):
                 setname = parasetlist.ix[a, 'Setname']
                 if not progress:
-                    # l.append(dsl.dslCal(strategyName,symbolInfo, K_MIN, setname, oprdflist[a-a0], bar1mlist[a-a0], barxmlist[a-a0], positionRatio, initialCash, stoplossTarget, dslFolderName + '\\',
-                    #                                       indexcols))
+                    # l.append(dsl.dslCal(strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, result_para_dic, stoplossTarget_dic,
+                    #                                       dslFolderName + '\\', indexcols))
                     l.append(pool.apply_async(dsl.dslCal, (strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, result_para_dic, stoplossTarget_dic,
                                                            dslFolderName + '\\', indexcols)))
                 else:
