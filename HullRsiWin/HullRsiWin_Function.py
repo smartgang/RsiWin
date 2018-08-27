@@ -8,6 +8,234 @@ import ResultStatistics as RS
 from datetime import datetime
 import time
 
+def calc_single_backtest_final_result(domain_symbol, bar_type):
+    """
+    计算单个品种回测结果的汇总finalresult文件
+    :param domain_symbol: 主力合约编号
+    :param bar_type: 周期
+    :return:
+    """
+    upperpath = DC.getUpperPath(Parameter.folderLevel)
+    resultpath = upperpath + Parameter.resultFolderName
+    symbol_folder = domain_symbol.replace('.', ' ') + ' ' + str(bar_type)
+    os.chdir(resultpath + symbol_folder)
+    bt_folder = "%s %d backtesting\\" % (domain_symbol, bar_type)
+    parasetlist = pd.read_csv("%s %d %s" % (domain_symbol.replace('.', ' '), bar_type, Parameter.parasetname))['Setname'].tolist()
+    indexcols = Parameter.ResultIndexDic
+    strategy_name = Parameter.strategyName
+    resultlist = pd.DataFrame(columns=['Setname'] + indexcols)
+    i = 0
+    for setname in parasetlist:
+        print setname
+        result = pd.read_csv((bt_folder + strategy_name + ' ' + domain_symbol + str(bar_type) + ' ' + setname + ' result.csv'))
+        dailyClose= pd.read_csv((bt_folder + strategy_name + ' ' + domain_symbol + str(bar_type) + ' ' + setname + ' dailyresult.csv'))
+        results = RS.getStatisticsResult(result, False, indexcols, dailyClose)
+        resultlist.loc[i] = [setname]+results #在这里附上setname
+        i += 1
+    finalresults = ("%s %s %d finalresults.csv" % (strategy_name, domain_symbol, bar_type))
+    resultlist.to_csv(finalresults)
+
+
+def calc_singal_close_final_result(domain_symbol, bar_type, sl_type, folder_name):
+    """
+    计算单个品种单个止损结果的汇总finalresult文件
+    :param domain_symbol: 主力合约编号
+    :param bar_type: 周期
+    :param sl_type: 止损类型 'DSL', 'OWNL', 'FRSL', 'ATR', 'GOWNL'
+    :param folder_name: 结果文件存放文件夹名
+    :return:
+    """
+    upperpath = DC.getUpperPath(Parameter.folderLevel)
+    resultpath = upperpath + Parameter.resultFolderName
+    symbol_folder = domain_symbol.replace('.', ' ') + ' ' + str(bar_type)
+    os.chdir(resultpath + symbol_folder)
+    bt_folder = "%s %d backtesting\\" % (domain_symbol, bar_type)
+    parasetlist = pd.read_csv(resultpath + Parameter.parasetname)['Setname'].tolist()
+    strategy_name = Parameter.strategyName
+    indexcols = Parameter.ResultIndexDic
+    file_name_suffix = '%s_by_tick.csv' % sl_type
+    new_indexcols = []
+    for i in indexcols:
+        new_indexcols.append('new_' + i)
+    resultdf = pd.DataFrame(columns=['setname', 'sl_target', 'worknum'] + indexcols + new_indexcols)
+    i = 0
+    for setname in parasetlist:
+        print setname
+        worknum = 0
+        olddailydf = pd.read_csv(bt_folder + strategy_name + ' ' + domain_symbol + str(bar_type) + ' ' + setname + ' dailyresult.csv',
+                                 index_col='date')
+        opr_file_name = "\\%s %s%d %s result%s" % (strategy_name, domain_symbol, bar_type, setname, file_name_suffix)
+        oprdf = pd.read_csv(folder_name + opr_file_name)
+        oldr = RS.getStatisticsResult(oprdf, False, indexcols, olddailydf)
+        opr_dialy_k_file_name = "\\%s %s%d %s dailyresult%s" % (strategy_name, domain_symbol, bar_type, setname, file_name_suffix)
+        dailyClose = pd.read_csv(folder_name + opr_dialy_k_file_name)
+        newr = RS.getStatisticsResult(oprdf, True, indexcols, dailyClose)
+        resultdf.loc[i] = [setname, folder_name, worknum] + oldr + newr
+        i += 1
+    resultdf.to_csv("%s\\%s %s%d finalresult_%s.csv" % (folder_name, strategy_name, domain_symbol, bar_type, folder_name))
+
+
+def re_concat_close_all_final_result(domain_symbol, bar_type, sl_type):
+    """
+    重新汇总某一止损类型所有参数的final_result， 止损的参数自动从Parameter中读
+    :param domain_symbol: 主力合约编号
+    :param bar_type: 周期
+    :param sl_type: 止损类型 'DSL', 'OWNL', 'FRSL', 'ATR', 'GOWNL'
+    :return:
+    """
+    upperpath = DC.getUpperPath(Parameter.folderLevel)
+    resultpath = upperpath + Parameter.resultFolderName
+    symbol_folder = domain_symbol.replace('.', ' ') + ' ' + str(bar_type)
+    os.chdir(resultpath + symbol_folder)
+    close_para_name_list = []
+    if sl_type == 'DSL':
+        folder_prefix = 'DynamicStopLoss'
+        final_result_file_suffix = 'dsl'
+        dsl_target_list = Parameter.dsl_target_list_close
+        for dsl_target in dsl_target_list:
+            close_para_name_list.append(str(dsl_target))
+    elif sl_type == 'OWNL':
+        folder_prefix = 'OnceWinNoLoss'
+        final_result_file_suffix = 'ownl'
+        ownl_protect_list = Parameter.ownl_protect_list_close
+        ownl_floor_list = Parameter.ownl_floor_list_close
+        for ownl_protect in ownl_protect_list:
+            for ownl_floor in ownl_floor_list:
+                close_para_name_list.append("%.3f_%d" % (ownl_protect, ownl_floor))
+    elif sl_type == 'FRSL':
+        folder_prefix = 'FixRateStopLoss'
+        final_result_file_suffix = 'frsl'
+        frsl_target_list = Parameter.frsl_target_list_close
+        for frsl_target in frsl_target_list:
+            close_para_name_list.append(str(frsl_target))
+    elif sl_type == 'ATR':
+        folder_prefix = 'ATRSL'
+        final_result_file_suffix = 'atrsl'
+        atr_pendant_n_list = Parameter.atr_pendant_n_list_close
+        atr_pendan_rate_list = Parameter.atr_pendant_rate_list_close
+        atr_yoyo_n_list = Parameter.atr_yoyo_n_list_close
+        atr_yoyo_rate_list = Parameter.atr_yoyo_rate_list_close
+        for atr_pendant_n in atr_pendant_n_list:
+            for atr_pendant_rate in atr_pendan_rate_list:
+                for atr_yoyo_n in atr_yoyo_n_list:
+                    for atr_yoyo_rate in atr_yoyo_rate_list:
+                        close_para_name_list.append('%d_%.1f_%d_%.1f' % (
+                                atr_pendant_n, atr_pendant_rate, atr_yoyo_n, atr_yoyo_rate))
+    elif sl_type == 'GOWNL':
+        folder_prefix = 'GOWNL'
+        final_result_file_suffix = 'gownl'
+        gownl_protect_list = Parameter.gownl_protect_list_close
+        gownl_floor_list = Parameter.gownl_floor_list_close
+        gownl_step_list = Parameter.gownl_step_list_close
+        for gownl_protect in gownl_protect_list:
+            for gownl_floor in gownl_floor_list:
+                for gownl_step in gownl_step_list:
+                    close_para_name_list.append('%.3f_%.1f_%.1f' % (gownl_protect, gownl_floor, gownl_step))
+    else:
+        print "close name error"
+        return
+    final_result_name_0 = "%s %s%d finalresult_%s%s.csv" % (
+    Parameter.strategyName, domain_symbol, bar_type, final_result_file_suffix, close_para_name_list[0])
+    final_result_file = pd.read_csv("%s%s\\%s" % (folder_prefix, close_para_name_list[0], final_result_name_0))
+    for para_name in close_para_name_list[1:]:
+        final_result_name = "%s %s%d finalresult_%s%s.csv" % (
+        Parameter.strategyName, domain_symbol, bar_type, final_result_file_suffix, para_name)
+        final_result_file = pd.concat([final_result_file, pd.read_csv("%s%s\\%s" % (folder_prefix, para_name, final_result_name))])
+
+    final_result_file.to_csv("%s %s%d finalresult_%s_reconcat.csv" % (
+    Parameter.strategyName, domain_symbol, bar_type, final_result_file_suffix))
+
+
+def re_concat_multi_symbol_final_result():
+    """
+    重新汇总多品种回测的final_result结果，自动从symbol_KMIN_set.xlsx文件读取品种列表
+    :return:
+    """
+    upperpath = DC.getUpperPath(Parameter.folderLevel)
+    resultpath = upperpath + Parameter.resultFolderName
+    os.chdir(resultpath)
+    multi_symbol_df = pd.read_excel('%s_symbol_KMIN_set.xlsx' % Parameter.strategyName)
+    all_final_result_list = []
+    for n, row in multi_symbol_df.iterrows():
+        strategy_name = row['strategyName']
+        exchange_id = row['exchange_id']
+        sec_id = row['sec_id']
+        bar_type = row['K_MIN']
+        symbol_folder_name = "%s %s %s %d\\" % (strategy_name, exchange_id, sec_id, bar_type)
+        bt_folder = "%s.%s %d backtesting\\" % (exchange_id, sec_id, bar_type)
+        result_file_name = "%s %s.%s %d finalresults.csv" % (strategy_name, exchange_id, sec_id, bar_type)
+        print result_file_name
+        final_result_df = pd.read_csv(symbol_folder_name + result_file_name)
+        final_result_df['strategy_name'] = strategy_name
+        final_result_df['exchange_id'] = exchange_id
+        final_result_df['sec_id'] = sec_id
+        final_result_df['ba_type'] = bar_type
+        all_final_result_list.append(final_result_df)
+
+    multi_symbol_result_df = pd.concat(all_final_result_list)
+    multi_symbol_result_df.to_csv('%s_symbol_KMIN_set_result.csv' % Parameter.strategyName)
+
+
+
+def calResultByPeriod():
+    '''
+    按时间分段统计结果:
+    1.设定开始和结束时间
+    2.选择时间周期
+    3.设定文件夹、买卖操作文件名、日结果文件名和要生成的新文件名
+    :return:
+    '''
+    #设定开始和结束时间
+    startdate = '2011-04-01'
+    enddate = '2018-07-01'
+
+    #2.选择时间周期
+    #freq='YS' #按年统计
+    #freq='2QS' #按半年统计
+    #freq='QS' #按季度统计
+    freq='MS' #按月统计，如需多个月，可以加上数据，比如2个月：2MS
+
+    #3.设文件和文件夹状态
+    filedir='D:\\002 MakeLive\myquant\HopeWin\Results\HopeMacdMaWin DCE J 3600\dsl_-0.022ownl_0.012\ForwardOprAnalyze\\' #文件所在文件夹
+    oprfilename = 'HopeMacdMaWin DCE.J3600_Rank3_win9_oprResult.csv' #买卖操作文件名
+    dailyResultFileName = 'HopeMacdMaWin DCE.J3600_Rank3_win9_oprdailyResult.csv' #日结果文件名
+    newFileName = 'HopeMacdMaWin DCE.J3600_Rank3_win9_result_by_Period_M.csv' #要生成的新文件名
+    os.chdir(filedir)
+    oprdf = pd.read_csv(oprfilename)
+    dailyResultdf = pd.read_csv(dailyResultFileName)
+
+    oprdfcols = oprdf.columns.tolist()
+    if 'new_closeprice' in oprdfcols:
+        newFlag = True
+    else:
+        newFlag = False
+
+    monthlist = [datetime.strftime(x, '%Y-%m-%d %H:%M:%S') for x in list(pd.date_range(start=startdate, end=enddate, freq=freq, normalize=True, closed='right'))]
+
+    if not startdate in monthlist[0]:
+        monthlist.insert(0,startdate+" 00:00:00")
+    if not enddate in monthlist[-1]:
+        monthlist.append(enddate+" 23:59:59")
+    else:
+        monthlist[-1]=enddate+" 23:59:59"
+    rlist=[]
+    for i in range(1,len(monthlist)):
+        starttime=monthlist[i-1]
+        endtime = monthlist[i]
+        startutc = float(time.mktime(time.strptime(starttime, "%Y-%m-%d %H:%M:%S")))
+        endutc = float(time.mktime(time.strptime(endtime, "%Y-%m-%d %H:%M:%S")))
+
+        resultdata = oprdf.loc[(oprdf['openutc'] >= startutc) & (oprdf['openutc'] < endutc)]
+        dailydata = dailyResultdf.loc[(dailyResultdf['utc_time'] >= startutc) & (dailyResultdf['utc_time'] < endutc)]
+        resultdata.reset_index(drop=True,inplace=True)
+        if resultdata.shape[0]>0:
+            rlist.append([starttime,endtime]+RS.getStatisticsResult(resultdata, newFlag, Parameter.ResultIndexDic, dailydata))
+        else:
+            rlist.append([0]*len(Parameter.ResultIndexDic))
+    rdf = pd.DataFrame(rlist,columns=['StartTime','EndTime']+Parameter.ResultIndexDic)
+    rdf.to_csv(newFileName)
+
+
 def set_generator():
     setlist = []
     i = 0
@@ -126,10 +354,41 @@ def plot_parameter_result_pic():
         p.bar([1, 2, 3, 4], test_data_2)
     """
 
-
 if __name__ == "__main__":
-    # set_generator()
-    # stat_multi_symbol_result()
-    # add_max_period_cash_to_finalresult()
-    plot_parameter_result_pic()
+    """
+        计算单个品种回测结果的汇总finalresult文件
+        :param domain_symbol: 主力合约编号
+        :param bar_type: 周期
+        """
+    # calc_single_backtest_final_result(domain_symbol='SHFE.RB', bar_type=3600)
+
+    """
+    计算单个品种单个止损结果的汇总finalresult文件
+    :param domain_symbol: 主力合约编号
+    :param bar_type: 周期
+    :param sl_type: 止损类型 'DSL', 'OWNL', 'FRSL', 'ATR', 'GOWNL'
+    :param folder_name: 结果文件存放文件夹名
+    """
+    # calc_singal_close_final_result(domain_symbol='SHFE.RB', bar_type=3600, sl_type='DSL', folder_name="DynamicStopLoss-0.018")
+
+    """
+    重新汇总某一止损类型所有参数的final_result， 止损的参数自动从Parameter中读
+    :param domain_symbol: 主力合约编号
+    :param bar_type: 周期
+    :param sl_type: 止损类型 'DSL', 'OWNL', 'FRSL', 'ATR', 'GOWNL'
+    """
+    # re_concat_close_all_final_result(domain_symbol='SHFE.RB', bar_type=3600, sl_type='DSL')
+
+    """
+    重新汇总多品种回测的final_result结果，自动从symbol_KMIN_set.xlsx文件读取品种列表
+    """
+    # re_concat_multi_symbol_final_result()
+
+    """
+    分时间段统计结果，需要到函数中修改相关参数
+    """
+    # calResultByPeriod()
+
+    """绘制finalresult结果中参数对应的end cash分布柱状图"""
+    #plot_parameter_result_pic()
     pass
