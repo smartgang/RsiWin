@@ -485,11 +485,6 @@ if __name__ == '__main__':
                 'startdate': symbolset.ix[i, 'startdate'],
                 'enddate': symbolset.ix[i, 'enddate'],
                 'result_para_dic': Parameter.result_para_dic,
-                'para_N': symbolset.ix[i, 'N'],
-                'para_N1': symbolset.ix[i, 'N1'],
-                'para_M1': symbolset.ix[i, 'M1'],
-                'para_M2': symbolset.ix[i, 'M2'],
-                'para_MaN': symbolset.ix[i, 'MaN'],
                 'progress': symbolset.ix[i, 'progress'],
                 'calcDsl': symbolset.ix[i, 'calcDsl'],
                 'calcOwnl': symbolset.ix[i, 'calcOwnl'],
@@ -625,23 +620,8 @@ if __name__ == '__main__':
         bar1mdic = DC.getBarBySymbolList(domain_symbol, symbolinfo.getSymbolList(), 60, startdate, enddate, cols)
         barxmdic = DC.getBarBySymbolList(domain_symbol, symbolinfo.getSymbolList(), K_MIN, startdate, enddate, cols)
 
-        try:
-            # 取参数集
-            parasetlist = pd.read_csv("%s %s %d %s" % (exchange_id, sec_id, K_MIN, Parameter.parasetname))
-        except:
-            if not Parameter.symbol_KMIN_opt_swtich:
-                para_list_dic = None    # 单品种模式使用默认参数
-            else:
-            # 如果没有，则直接生成
-                para_list_dic = {
-                    'N':strategyParameter['para_N'],
-                    'N1':strategyParameter['para_N1'],
-                    'M1':strategyParameter['para_M1'],
-                    'M2': strategyParameter['para_M2'],
-                    'MaN':strategyParameter['para_MaN']
-                }
-            parasetlist = Parameter.generat_para_file(para_list_dic)
-            parasetlist.to_csv("%s %s %d %s" % (exchange_id, sec_id, K_MIN, Parameter.parasetname))
+        # 取参数集
+        parasetlist = pd.read_csv("%s %s %d %s" % (exchange_id, sec_id, K_MIN, Parameter.parasetname))
         paranum = parasetlist.shape[0]
 
 
