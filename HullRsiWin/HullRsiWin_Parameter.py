@@ -25,6 +25,11 @@ strategy_para_dic = {
     "MaN": [20, 30, 40, 50]
 }
 # ====================止损控制开关======================
+progress_close = False      # 增量模式开关
+calc_all_close = False      # 一次全部计算模式，该模式不能与混合止损同时打开
+calcMultiSLT_close = True  # 混合止损开关
+
+
 calcDsl_close = True   # dsl动态止损开关
 dsl_target_list_close = [-0.018, -0.02, -0.022]
 
@@ -45,9 +50,6 @@ atr_pendant_n_list_close = [5, 8]     # 吊灯atr的n值
 atr_pendant_rate_list_close = [1.0, 1.5, 2.0]     # 吊灯atr的最大回撤止损atr比例
 atr_yoyo_n_list_close = [8, 16, 30]   # yoyo的atr n值
 atr_yoyo_rate_list_close = [1, 1.2, 1.5]      # yoyo的止损atr比例
-
-progress_close = False      # 增量模式开关
-calcMultiSLT_close = True  # 混合止损开关
 
 # =============推进控制开关===================
 # nextMonthName='18-05'

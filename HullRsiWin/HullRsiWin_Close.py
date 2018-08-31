@@ -7,6 +7,7 @@ import DslOwnlClose as dslownl
 import MultiStopLoss as msl
 import StopLossLib.AtrStopLoss as atrsl
 import StopLossLib.GOWNL as gownl
+import StopLossLib.AllClose as all_close
 import DATA_CONSTANTS as DC
 import pandas as pd
 import os
@@ -17,7 +18,8 @@ import HullRsiWin_Parameter as Parameter
 import time
 
 
-def getDSL(strategyName, symbolInfo, bar_type, dsl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress=False):
+def getDSL(strategyName, symbolInfo, bar_type, dsl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic,
+           indexcols, progress=False):
     symbol = symbolInfo.domain_symbol
     new_indexcols = []
     for i in indexcols:
@@ -49,14 +51,17 @@ def getDSL(strategyName, symbolInfo, bar_type, dsl_para_dic_list, parasetlist, b
                 if not progress:
                     # l.append(dsl.dslCal(strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, result_para_dic, stoplossTarget_dic,
                     #                                       dslFolderName + '\\', indexcols))
-                    l.append(pool.apply_async(dsl.dslCal, (strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, result_para_dic, stoplossTarget_dic,
-                                                           dslFolderName + '\\', indexcols)))
+                    l.append(pool.apply_async(dsl.dslCal, (
+                        strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, result_para_dic,
+                        stoplossTarget_dic,
+                        dslFolderName + '\\', indexcols)))
                 else:
                     # l.append(dsl.progressDslCal(strategyName,symbolInfo, K_MIN, setname, bar1m, barxm, pricetick,
                     #                                               positionRatio, initialCash, stoplossTarget,
                     #                                               dslFolderName + '\\'))
                     l.append(pool.apply_async(dsl.progressDslCal, (strategyName,
-                                                                   symbolInfo, bar_type, setname, bar1mdic, barxmdic, result_para_dic, stoplossTarget_dic,
+                                                                   symbolInfo, bar_type, setname, bar1mdic, barxmdic,
+                                                                   result_para_dic, stoplossTarget_dic,
                                                                    dslFolderName + '\\', indexcols)))
             pool.close()
             pool.join()
@@ -66,14 +71,17 @@ def getDSL(strategyName, symbolInfo, bar_type, dsl_para_dic_list, parasetlist, b
                 allresultdf.loc[allnum] = resultdf.loc[setnum]
                 setnum += 1
                 allnum += 1
-        resultdf.to_csv(dslFolderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_dsl%s.csv' % stoplossTarget_dic['para_name'], index=False)
+        resultdf.to_csv(dslFolderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_dsl%s.csv' %
+                        stoplossTarget_dic['para_name'], index=False)
         timeend = time.time()
         timecost = timeend - timestart
-        print (u"dsl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (stoplossTarget_dic['para_name'], paranum, timecost, timecost / paranum))
+        print (u"dsl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (
+            stoplossTarget_dic['para_name'], paranum, timecost, timecost / paranum))
     allresultdf.to_csv(strategyName + ' ' + symbol + str(bar_type) + ' finalresult_dsl.csv', index=False)
 
 
-def getOwnl(strategyName, symbolInfo, bar_type, ownl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress=False):
+def getOwnl(strategyName, symbolInfo, bar_type, ownl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic,
+            indexcols, progress=False):
     symbol = symbolInfo.domain_symbol
     new_indexcols = []
     for i in indexcols:
@@ -104,14 +112,16 @@ def getOwnl(strategyName, symbolInfo, bar_type, ownl_para_dic_list, parasetlist,
                 setname = parasetlist.ix[a, 'Setname']
                 if not progress:
                     l.append(pool.apply_async(ownl.ownlCal,
-                                              (strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, winSwitchDic, result_para_dic,
+                                              (strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic,
+                                               winSwitchDic, result_para_dic,
                                                ownlFolderName + '\\', indexcols)))
                 else:
                     # l.append(ownl.progressOwnlCal(strategyName, symbolInfo, K_MIN, setname, bar1m, barxm, winSwitch,
                     #                           nolossThreshhold, positionRatio, initialCash,
                     #                           ownlFolderName + '\\'))
                     l.append(pool.apply_async(ownl.progressOwnlCal,
-                                              (strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, winSwitchDic, result_para_dic,
+                                              (strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic,
+                                               winSwitchDic, result_para_dic,
                                                ownlFolderName + '\\', indexcols)))
             pool.close()
             pool.join()
@@ -122,15 +132,20 @@ def getOwnl(strategyName, symbolInfo, bar_type, ownl_para_dic_list, parasetlist,
                 setnum += 1
                 allnum += 1
         # ownlresultdf['cashDelta'] = ownlresultdf['new_endcash'] - ownlresultdf['old_endcash']
-        ownlresultdf.to_csv(ownlFolderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_ownl%s.csv' % winSwitchDic['para_name'], index=False)
+        ownlresultdf.to_csv(
+            ownlFolderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_ownl%s.csv' %
+            winSwitchDic['para_name'], index=False)
         timeend = time.time()
         timecost = timeend - timestart
-        print (u"ownl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (winSwitchDic['para_name'], paranum, timecost, timecost / paranum))
+        print (
+            u"ownl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (
+                winSwitchDic['para_name'], paranum, timecost, timecost / paranum))
     # ownlallresultdf['cashDelta'] = ownlallresultdf['new_endcash'] - ownlallresultdf['old_endcash']
     ownlallresultdf.to_csv(strategyName + ' ' + symbol + str(bar_type) + ' finalresult_ownl.csv', index=False)
 
 
-def getFRSL(strategyName, symbolInfo, K_MIN, fixRateDicList, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress=False):
+def getFRSL(strategyName, symbolInfo, K_MIN, fixRateDicList, parasetlist, bar1mdic, barxmdic, result_para_dic,
+            indexcols, progress=False):
     symbol = symbolInfo.domain_symbol
     new_indexcols = []
     for i in indexcols:
@@ -161,11 +176,13 @@ def getFRSL(strategyName, symbolInfo, K_MIN, fixRateDicList, parasetlist, bar1md
                     # l.append(frsl.frslCal(strategyName,
                     #                                       symbolInfo, K_MIN, setname, bar1m, barxm, fixRateTarget, positionRatio,initialCash, folderName + '\\'))
                     l.append(pool.apply_async(frsl.frslCal, (strategyName,
-                                                             symbolInfo, K_MIN, setname, bar1mdic, barxmdic, fixRateTarget, result_para_dic, folderName + '\\',
+                                                             symbolInfo, K_MIN, setname, bar1mdic, barxmdic,
+                                                             fixRateTarget, result_para_dic, folderName + '\\',
                                                              indexcols)))
                 else:
                     l.append(pool.apply_async(frsl.progressFrslCal, (strategyName,
-                                                                     symbolInfo, K_MIN, setname, bar1mdic, barxmdic, fixRateTarget, result_para_dic, folderName + '\\',
+                                                                     symbolInfo, K_MIN, setname, bar1mdic, barxmdic,
+                                                                     fixRateTarget, result_para_dic, folderName + '\\',
                                                                      indexcols)))
             pool.close()
             pool.join()
@@ -176,15 +193,20 @@ def getFRSL(strategyName, symbolInfo, K_MIN, fixRateDicList, parasetlist, bar1md
                 setnum += 1
                 allnum += 1
         # resultdf['cashDelta'] = resultdf['new_endcash'] - resultdf['old_endcash']
-        resultdf.to_csv(folderName + '\\' + strategyName + ' ' + symbol + str(K_MIN) + ' finalresult_frsl%s.csv' % fixRateTarget['para_name'], index=False)
+        resultdf.to_csv(
+            folderName + '\\' + strategyName + ' ' + symbol + str(K_MIN) + ' finalresult_frsl%s.csv' % fixRateTarget[
+                'para_name'], index=False)
         timeend = time.time()
         timecost = timeend - timestart
-        print (u"frsl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (fixRateTarget['para_name'], paranum, timecost, timecost / paranum))
+        print (
+            u"frsl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (
+                fixRateTarget['para_name'], paranum, timecost, timecost / paranum))
     # allresultdf['cashDelta'] = allresultdf['new_endcash'] - allresultdf['old_endcash']
     allresultdf.to_csv(strategyName + ' ' + symbol + str(K_MIN) + ' finalresult_frsl.csv', index=False)
 
 
-def get_atr_sl(strategyName, symbolInfo, bar_type, atr_para_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress=False):
+def get_atr_sl(strategyName, symbolInfo, bar_type, atr_para_list, parasetlist, bar1mdic, barxmdic, result_para_dic,
+               indexcols, progress=False):
     symbol = symbolInfo.domain_symbol
     new_indexcols = []
     for i in indexcols:
@@ -212,14 +234,16 @@ def get_atr_sl(strategyName, symbolInfo, bar_type, atr_para_list, parasetlist, b
             for a in range(numlist[n - 1], numlist[n]):
                 setname = parasetlist.ix[a, 'Setname']
                 if not progress:
-                    #l.append(atrsl.atrsl(strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, atr_para, result_para_dic, folderName + '\\',
+                    # l.append(atrsl.atrsl(strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, atr_para, result_para_dic, folderName + '\\',
                     #                     indexcols, timestart))
                     l.append(pool.apply_async(atrsl.atrsl, (strategyName,
-                                                             symbolInfo, bar_type, setname, bar1mdic, barxmdic, atr_para, result_para_dic, folderName + '\\',
-                                                             indexcols, timestart)))
+                                                            symbolInfo, bar_type, setname, bar1mdic, barxmdic, atr_para,
+                                                            result_para_dic, folderName + '\\',
+                                                            indexcols, timestart)))
                 else:
                     l.append(pool.apply_async(atrsl.progress_atrsl, (strategyName,
-                                                                     symbolInfo, K_MIN, setname, bar1mdic, barxmdic, atr_para, result_para_dic, folderName + '\\',
+                                                                     symbolInfo, K_MIN, setname, bar1mdic, barxmdic,
+                                                                     atr_para, result_para_dic, folderName + '\\',
                                                                      indexcols)))
             pool.close()
             pool.join()
@@ -230,7 +254,9 @@ def get_atr_sl(strategyName, symbolInfo, bar_type, atr_para_list, parasetlist, b
                 setnum += 1
                 allnum += 1
         # resultdf['cashDelta'] = resultdf['new_endcash'] - resultdf['old_endcash']
-        resultdf.to_csv(folderName + '\\' + strategyName + ' ' + symbol + str(K_MIN) + ' finalresult_atrsl%s.csv' % folderName, index=False)
+        resultdf.to_csv(
+            folderName + '\\' + strategyName + ' ' + symbol + str(K_MIN) + ' finalresult_atrsl%s.csv' % folderName,
+            index=False)
         timeend = time.time()
         timecost = timeend - timestart
         print (u"atr_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (folderName, paranum, timecost, timecost / paranum))
@@ -238,7 +264,8 @@ def get_atr_sl(strategyName, symbolInfo, bar_type, atr_para_list, parasetlist, b
     allresultdf.to_csv(strategyName + ' ' + symbol + str(K_MIN) + ' finalresult_atrsl.csv', index=False)
 
 
-def get_gownl(strategyName, symbolInfo, bar_type, gownl_para_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress=False):
+def get_gownl(strategyName, symbolInfo, bar_type, gownl_para_list, parasetlist, bar1mdic, barxmdic, result_para_dic,
+              indexcols, progress=False):
     symbol = symbolInfo.domain_symbol
     new_indexcols = []
     for i in indexcols:
@@ -266,14 +293,16 @@ def get_gownl(strategyName, symbolInfo, bar_type, gownl_para_list, parasetlist, 
             for a in range(numlist[n - 1], numlist[n]):
                 setname = parasetlist.ix[a, 'Setname']
                 if not progress:
-                    #l.append(gownl.gownl(strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, gownl_para, result_para_dic, folderName + '\\',
+                    # l.append(gownl.gownl(strategyName, symbolInfo, bar_type, setname, bar1mdic, barxmdic, gownl_para, result_para_dic, folderName + '\\',
                     #                     indexcols, timestart))
                     l.append(pool.apply_async(gownl.gownl, (strategyName,
-                                                             symbolInfo, bar_type, setname, bar1mdic, barxmdic, gownl_para, result_para_dic, folderName + '\\',
-                                                             indexcols, timestart)))
+                                                            symbolInfo, bar_type, setname, bar1mdic, barxmdic,
+                                                            gownl_para, result_para_dic, folderName + '\\',
+                                                            indexcols, timestart)))
                 else:
                     l.append(pool.apply_async(gownl.progress_gownl, (strategyName,
-                                                                     symbolInfo, bar_type, setname, bar1mdic, barxmdic, gownl_para, result_para_dic, folderName + '\\',
+                                                                     symbolInfo, bar_type, setname, bar1mdic, barxmdic,
+                                                                     gownl_para, result_para_dic, folderName + '\\',
                                                                      indexcols)))
             pool.close()
             pool.join()
@@ -284,12 +313,83 @@ def get_gownl(strategyName, symbolInfo, bar_type, gownl_para_list, parasetlist, 
                 setnum += 1
                 allnum += 1
         # resultdf['cashDelta'] = resultdf['new_endcash'] - resultdf['old_endcash']
-        resultdf.to_csv(folderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_gownl%s.csv' % folderName, index=False)
+        resultdf.to_csv(
+            folderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_gownl%s.csv' % folderName,
+            index=False)
         timeend = time.time()
         timecost = timeend - timestart
         print (u"gownl_%s 计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (folderName, paranum, timecost, timecost / paranum))
     # allresultdf['cashDelta'] = allresultdf['new_endcash'] - allresultdf['old_endcash']
     allresultdf.to_csv(strategyName + ' ' + symbol + str(bar_type) + ' finalresult_gownl.csv', index=False)
+
+
+def get_all_close(strategyName, symbolinfo, bar_type, all_close_para_dic, parasetlist, bar1mdic, barxmdic,
+                  result_para_dic, indexcols, progress):
+    # 一次计算所有止损参数
+    # 注:atrsl和fvsl暂不支持
+    symbol = symbolinfo.domain_symbol
+    new_indexcols = []
+    for i in indexcols:
+        new_indexcols.append('new_' + i)
+    paranum = parasetlist.shape[0]
+    all_result_dic = {}  # 这个保存的是每个止损参数的结果
+    for close_para_dic in all_close_para_dic:
+        close_folder_prefix = close_para_dic['folderPrefix']
+        paralist = close_para_dic['paralist']
+        result_dic = {}
+        for para in paralist:
+            para_name = para['para_name']
+            folderName = '%s%s' % (close_folder_prefix, para_name)
+            try:
+                os.mkdir(folderName)  # 创建文件夹
+            except:
+                pass
+            resultdf = pd.DataFrame(columns=['setname', close_para_dic['name'], 'worknum'] + indexcols + new_indexcols)
+            result_dic[para_name] = resultdf
+        all_result_dic[close_para_dic['name']] = result_dic
+    timestart = time.time()
+    setnum = 0
+    numlist = range(0, paranum, 100)
+    numlist.append(paranum)
+    for n in range(1, len(numlist)):
+        pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
+        l = []
+        for a in range(numlist[n - 1], numlist[n]):
+            setname = parasetlist.ix[a, 'Setname']
+            l.append(pool.apply_async(all_close.all_close, (strategyName,
+                                                            symbolinfo, bar_type, setname, bar1mdic, barxmdic,
+                                                            all_close_para_dic, result_para_dic, indexcols, timestart)))
+        pool.close()
+        pool.join()
+
+        for res in l:
+            get_result_dic = res.get()
+            for k, v in get_result_dic:
+                result_dic = all_result_dic[k]
+                for k1, v1 in v:
+                    result_dic[k1].loc[setnum] = v1
+            setnum += 1
+    for close_para_dic in all_close_para_dic:
+        close_folder_prefix = close_para_dic['folderPrefix']
+        paralist = close_para_dic['paralist']
+        close_type = close_para_dic['name']
+        result_dic = all_result_dic[close_type]
+        all_result_list = []
+        for para in paralist:
+            para_name = para['para_name']
+            folderName = '%s%s' % (close_folder_prefix, para_name)
+            resultdf = result_dic[para_name]
+            resultdf.to_csv(
+                folderName + '\\' + strategyName + ' ' + symbol + str(bar_type) + ' finalresult_%s%s.csv' % (
+                    close_type, para_name),
+                index=False)
+            all_result_list.append(resultdf)
+        all_final_result = pd.concat(all_result_list)
+        all_final_result.to_csv(strategyName + ' ' + symbol + str(bar_type) + ' finalresult_%s.csv' % close_type,
+                                index=False)
+    timeend = time.time()
+    timecost = timeend - timestart
+    print (u"全部止损计算完毕，共%d组数据，总耗时%.3f秒,平均%.3f秒/组" % (paranum, timecost, timecost / paranum))
 
 
 def getDslOwnl(strategyName, symbolInfo, K_MIN, parasetlist, stoplossList, winSwitchList, result_para_dic, indexcols):
@@ -316,7 +416,8 @@ def getDslOwnl(strategyName, symbolInfo, K_MIN, parasetlist, stoplossList, winSw
             for sn in range(0, paranum):
                 setname = parasetlist.ix[sn, 'Setname']
                 l.append(pool.apply_async(dslownl.dslAndownlCal,
-                                          (strategyName, symbolInfo, K_MIN, setname, stoplossTarget, winSwitch, result_para_dic, dslFolderName,
+                                          (strategyName, symbolInfo, K_MIN, setname, stoplossTarget, winSwitch,
+                                           result_para_dic, dslFolderName,
                                            ownlFolderName, newfolder + '\\')))
             pool.close()
             pool.join()
@@ -332,7 +433,8 @@ def getDslOwnl(strategyName, symbolInfo, K_MIN, parasetlist, stoplossList, winSw
                 allresultdf.loc[allnum] = resultdf.loc[i]
                 i += 1
                 allnum += 1
-            resultfilename = ("%s %s%d finalresult_dsl%.3f_ownl%.3f.csv" % (strategyName, symbol, K_MIN, stoplossTarget, winSwitch))
+            resultfilename = (
+                "%s %s%d finalresult_dsl%.3f_ownl%.3f.csv" % (strategyName, symbol, K_MIN, stoplossTarget, winSwitch))
             resultdf.to_csv(newfolder + '\\' + resultfilename)
 
     # allresultdf['cashDelta'] = allresultdf['new_endcash'] - allresultdf['old_endcash']
@@ -369,15 +471,15 @@ def getMultiSLT(strategyName, symbolInfo, K_MIN, parasetlist, barxmdic, sltlist,
         sltset = []
         for t in slt['paralist']:
             sltset.append({'name': slt['name'],
-                           'sltValue': t,   # t是一个参数字典
+                           'sltValue': t,  # t是一个参数字典
                            'folder': ("%s%s\\" % (slt['folderPrefix'], t['para_name'])),
                            'fileSuffix': slt['fileSuffix']
                            })
         allSltSetList.append(sltset)
-    finalSltSetList=[]#二维数据，每个一元素是一个多个止损目标的参数dic组合
+    finalSltSetList = []  # 二维数据，每个一元素是一个多个止损目标的参数dic组合
     for sltpara in allSltSetList[0]:
         finalSltSetList.append([sltpara])
-    for i in range(1,len(allSltSetList)):
+    for i in range(1, len(allSltSetList)):
         tempset = allSltSetList[i]
         newset = []
         for o in finalSltSetList:
@@ -389,7 +491,7 @@ def getMultiSLT(strategyName, symbolInfo, K_MIN, parasetlist, barxmdic, sltlist,
     for sltset in finalSltSetList:
         newfolder = ''
         for sltp in sltset:
-            #newfolder += (sltp['name'] + '_%.3f' % (sltp['sltValue']))
+            # newfolder += (sltp['name'] + '_%.3f' % (sltp['sltValue']))
             v = sltp['sltValue']
             newfolder += "{}_{} ".format(sltp['name'], v["para_name"])
         try:
@@ -404,7 +506,8 @@ def getMultiSLT(strategyName, symbolInfo, K_MIN, parasetlist, barxmdic, sltlist,
             # l.append(msl.multiStopLosslCal(strategyName, symbolInfo, K_MIN, setname, sltset, positionRatio, initialCash,
             #                           newfolder + '\\'))
             l.append(pool.apply_async(msl.multiStopLosslCal,
-                                      (strategyName, symbolInfo, K_MIN, setname, sltset, barxmdic, result_para_dic, newfolder, indexcols)))
+                                      (strategyName, symbolInfo, K_MIN, setname, sltset, barxmdic, result_para_dic,
+                                       newfolder, indexcols)))
         pool.close()
         pool.join()
 
@@ -422,7 +525,8 @@ def getMultiSLT(strategyName, symbolInfo, K_MIN, parasetlist, barxmdic, sltlist,
     for slt in sltlist:
         allresultname += slt['name']
     # allresultdf['cashDelta'] = allresultdf['new_endcash'] - allresultdf['old_endcash']
-    allresultdf.to_csv("%s %s%d finalresult_multiSLT_%s.csv" % (strategyName, symbol, K_MIN, allresultname), index=False)
+    allresultdf.to_csv("%s %s%d finalresult_multiSLT_%s.csv" % (strategyName, symbol, K_MIN, allresultname),
+                       index=False)
     pass
 
 
@@ -432,8 +536,8 @@ if __name__ == '__main__':
     resultpath = upperpath + Parameter.resultFolderName
 
     # 取参数集
-    #parasetlist = pd.read_csv(resultpath + Parameter.parasetname)
-    #paranum = parasetlist.shape[0]
+    # parasetlist = pd.read_csv(resultpath + Parameter.parasetname)
+    # paranum = parasetlist.shape[0]
 
     # indexcols
     indexcols = Parameter.ResultIndexDic
@@ -455,6 +559,7 @@ if __name__ == '__main__':
             'calcOwnl': Parameter.calcOwnl_close,
             'calcFrsl': Parameter.calcFrsl_close,
             'calcMultiSLT': Parameter.calcMultiSLT_close,
+            'calc_all_close': Parameter.calc_all_close,
             'dsl_target_list': Parameter.dsl_target_list_close,
             'ownl_protect_list': Parameter.ownl_protect_list_close,
             'ownl_floor_list': Parameter.ownl_floor_list_close,
@@ -490,6 +595,7 @@ if __name__ == '__main__':
                 'calcOwnl': symbolset.ix[i, 'calcOwnl'],
                 'calcFrsl': symbolset.ix[i, 'calcFrsl'],
                 'calcMultiSLT': symbolset.ix[i, 'calcMultiSLT'],
+                'calc_all_close': symbolset.ix[i, 'calcAllClose'],
                 'dsl_target_list': Parameter.para_str_to_float(symbolset.ix[i, 'dsl_target']),
                 'ownl_protect_list': Parameter.para_str_to_float(symbolset.ix[i, 'ownl_protect']),
                 'ownl_floor_list': Parameter.para_str_to_float(symbolset.ix[i, 'ownl_floor']),
@@ -523,6 +629,7 @@ if __name__ == '__main__':
 
         # 计算控制开关
         progress = strategyParameter['progress']
+        calc_all_close = strategyParameter['calc_all_close']
         calcDsl = strategyParameter['calcDsl']
         calcOwnl = strategyParameter['calcOwnl']
         calcFrsl = strategyParameter['calcFrsl']
@@ -577,7 +684,8 @@ if __name__ == '__main__':
                         for atr_yoyo_rate in atr_yoyo_rate_list:
                             atrsl_para_dic_list.append(
                                 {
-                                    'para_name': '%d_%.1f_%d_%.1f' % (atr_pendant_n, atr_pendant_rate, atr_yoyo_n, atr_yoyo_rate),
+                                    'para_name': '%d_%.1f_%d_%.1f' % (
+                                        atr_pendant_n, atr_pendant_rate, atr_yoyo_n, atr_yoyo_rate),
                                     'atr_pendant_n': atr_pendant_n,
                                     'atr_pendant_rate': atr_pendant_rate,
                                     'atr_yoyo_n': atr_yoyo_n,
@@ -624,8 +732,7 @@ if __name__ == '__main__':
         parasetlist = pd.read_csv("%s %s %d %s" % (exchange_id, sec_id, K_MIN, Parameter.parasetname))
         paranum = parasetlist.shape[0]
 
-
-        if calcMultiSLT:
+        if calcMultiSLT or calc_all_close:
             sltlist = []
             if calcDsl:
                 sltlist.append({'name': 'dsl',
@@ -642,7 +749,7 @@ if __name__ == '__main__':
                                 'paralist': frsl_para_dic_list,
                                 'folderPrefix': 'FixRateStopLoss',
                                 'fileSuffix': 'resultFRSL_by_tick.csv'})
-            if calcAtrsl:
+            if calcAtrsl and not calc_all_close:  # all_close模式不支持atrsl
                 sltlist.append({'name': 'atrsl',
                                 'paralist': atrsl_para_dic_list,
                                 'folderPrefix': 'ATRSL',
@@ -654,19 +761,27 @@ if __name__ == '__main__':
                                 'folderPrefix': 'GOWNL',
                                 'fileSuffix': 'resultGOWNL_by_tick.csv'
                                 })
-            getMultiSLT(strategyName, symbolinfo, K_MIN, parasetlist, barxmdic, sltlist, result_para_dic, indexcols)
+            if calcMultiSLT:
+                getMultiSLT(strategyName, symbolinfo, K_MIN, parasetlist, barxmdic, sltlist, result_para_dic, indexcols)
+            else:
+                pass
         else:
             if calcDsl:
-                getDSL(strategyName, symbolinfo, K_MIN, dsl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress)
+                getDSL(strategyName, symbolinfo, K_MIN, dsl_para_dic_list, parasetlist, bar1mdic, barxmdic,
+                       result_para_dic, indexcols, progress)
 
             if calcOwnl:
-                getOwnl(strategyName, symbolinfo, K_MIN, ownl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress)
+                getOwnl(strategyName, symbolinfo, K_MIN, ownl_para_dic_list, parasetlist, bar1mdic, barxmdic,
+                        result_para_dic, indexcols, progress)
 
             if calcFrsl:
-                getFRSL(strategyName, symbolinfo, K_MIN, frsl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress)
+                getFRSL(strategyName, symbolinfo, K_MIN, frsl_para_dic_list, parasetlist, bar1mdic, barxmdic,
+                        result_para_dic, indexcols, progress)
 
             if calcAtrsl:
-                get_atr_sl(strategyName, symbolinfo, K_MIN, atrsl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols, progress=False)
+                get_atr_sl(strategyName, symbolinfo, K_MIN, atrsl_para_dic_list, parasetlist, bar1mdic, barxmdic,
+                           result_para_dic, indexcols, progress=False)
 
             if calcGownl:
-                get_gownl(strategyName, symbolinfo, K_MIN, gownl_para_dic_list, parasetlist, bar1mdic, barxmdic, result_para_dic, indexcols)
+                get_gownl(strategyName, symbolinfo, K_MIN, gownl_para_dic_list, parasetlist, bar1mdic, barxmdic,
+                          result_para_dic, indexcols)
