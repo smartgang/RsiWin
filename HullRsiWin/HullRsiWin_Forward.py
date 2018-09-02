@@ -235,7 +235,7 @@ if __name__ == '__main__':
                 'calcOwnl': symbolset.ix[i, 'calcOwnl'],
                 'calcFrsl': symbolset.ix[i, 'calcFrsl'],
                 'calcDslOwnl': symbolset.ix[i, 'calcDslOwnl'],
-                'multiSTL': symbolset.ix[i, 'multiSTL'],  # 混合止损推进开关
+                'multiSLT': symbolset.ix[i, 'multiSLT'],  # 混合止损推进开关
                 'dsl_target_list': Parameter.para_str_to_float(symbolset.ix[i, 'dsl_target']),
                 'ownl_protect_list': Parameter.para_str_to_float(symbolset.ix[i, 'ownl_protect']),
                 'ownl_floor_list': Parameter.para_str_to_float(symbolset.ix[i, 'ownl_floor']),
@@ -276,7 +276,7 @@ if __name__ == '__main__':
         calcDsl = strategyParameter['calcDsl']
         calcOwnl = strategyParameter['calcOwnl']
         calcFrsl = strategyParameter['calcFrsl']
-        calcMultiSLT = strategyParameter['calcMultiSLT']
+        calcMultiSLT = strategyParameter['multiSLT']
         calcAtrsl = strategyParameter['calcAtrsl']
         calcGownl = strategyParameter['calcGownl']
         # 优化参数
@@ -361,7 +361,6 @@ if __name__ == '__main__':
 
         if calcMultiSLT:
             # 混合止损推进打开的情况下，只做混合止损推进
-            sltlist = []
             sltlist = []
             if calcDsl:
                 sltlist.append({'name': 'dsl',
