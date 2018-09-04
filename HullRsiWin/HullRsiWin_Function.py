@@ -7,6 +7,7 @@ import numpy as np
 import ResultStatistics as RS
 from datetime import datetime
 import time
+import matplotlib.pyplot as plt
 
 def calc_single_backtest_final_result(domain_symbol, bar_type):
     """
@@ -318,7 +319,6 @@ def add_max_period_cash_to_finalresult():
 
 def plot_parameter_result_pic():
     """绘制finalresult结果中参数对应的end cash和max own cash的分布柱状图"""
-    import matplotlib.pyplot as plt
     upperpath = DC.getUpperPath(Parameter.folderLevel)
     resultpath = upperpath + Parameter.resultFolderName
     os.chdir(resultpath)
